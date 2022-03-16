@@ -8,5 +8,3 @@ config/develop
 
 .eslintcache
 .dccache
-
-coverage

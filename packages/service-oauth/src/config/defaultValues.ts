@@ -1,0 +1,2 @@
+export const DEFAULT_TOKEN_EXPIRE = '15m'
+export const DEFAULT_REFRESH_TOKEN_EXPIRE = '14d'
