@@ -35,7 +35,7 @@ export const getDefaultStaticFileMiddlewareOptions = (): StaticFileMiddlewareOpt
 export const createStaticFileMiddleware = (options = getDefaultStaticFileMiddlewareOptions()): Middleware => {
   const config = { ...getDefaultStaticFileMiddlewareOptions(), ...options }
 
-  const staticFileMiddleware: Middleware = async (request, response, context) => {
+  const staticFileMiddleware: Middleware = async function (request, response, context) {
     if (request.method !== 'GET') {
       return context
     }
@@ -66,6 +66,7 @@ export const createStaticFileMiddleware = (options = getDefaultStaticFileMiddlew
     const result = new Promise<Context>((resolve, reject) => {
       const mimeType = lookup(filePath)
       const responseContentType = contentType(extname(filePath))
+      // deepcode ignore PT: <we know that this might be dangerous in general to serve static files>
       const readStream = createReadStream(filePath)
 
       readStream.on('open', () => {
@@ -86,7 +87,7 @@ export const createStaticFileMiddleware = (options = getDefaultStaticFileMiddlew
         if (err.code === 'ENOENT') {
           resolve(context)
         } else {
-          context.log.error(err)
+          this.log.error(err)
           reject(new HandledError(ErrorCode.InternalServerError))
         }
       })

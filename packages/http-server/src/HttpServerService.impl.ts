@@ -12,11 +12,12 @@ import Trouter, { Methods } from 'trouter'
 import { URL } from 'url'
 
 import { COMMANDS } from './commands'
-import { getDefaultConfig, ServiceInfo } from './config'
-import { createInternalError500Handler, createNotFound404Handler } from './handler'
+import { getDefaultConfig, OPENAPI_DEFAULT_MOUNT_PATH, ServiceInfo } from './config'
+import { createInternalError500Handler, createNotFound404Handler, openApiHandler } from './handler'
 import { createHttpServer, getNewContext } from './helper'
+import { createCompressionMiddleware, createResponseToJsonMiddleware } from './onAfterMiddleware'
 import { SUBSCRIPTIONS } from './subscriptions'
-import { Handler, HttpServerConfig } from './types'
+import { Handler, HttpExposedServiceMeta, HttpServerConfig } from './types'
 import { Middleware } from './types/Middleware'
 
 export class HttpServerService extends Service {
@@ -31,6 +32,8 @@ export class HttpServerService extends Service {
   private onBeforeMiddleware: Middleware[] = []
   private onAfterMiddleware: Middleware[] = []
 
+  public routeDefinitions: HttpExposedServiceMeta[] = []
+
   /**
    * Create a new instance of the HttpServer class
    * @param {Logger} baseLogger - The logger that the server will use.
@@ -44,6 +47,17 @@ export class HttpServerService extends Service {
 
     this.notFoundHandlers = [createNotFound404Handler()]
     this.internalServerErrorHandler = createInternalError500Handler()
+
+    if (this.conf.openApi?.enabled) {
+      const openApiPath = this.conf.openApi.path || OPENAPI_DEFAULT_MOUNT_PATH
+      this.addRoute(
+        'GET',
+        openApiPath,
+        openApiHandler.bind(this),
+        createResponseToJsonMiddleware(),
+        createCompressionMiddleware(),
+      )
+    }
   }
 
   /**
@@ -85,9 +99,10 @@ export class HttpServerService extends Service {
    * @param {string} pattern - The pattern to match against.
    * @param {Handler[]} handlers - An array of handlers to be called when the route is matched.
    */
-  addAllRoute(pattern: string, ...handlers: Handler[]) {
+  addAllRoute(pattern: string, ...handlers: Handler[]): HttpServerService {
     this.router.all(pattern, ...handlers)
     this.log.debug('route add all:', pattern)
+    return this
   }
 
   /**
@@ -96,9 +111,10 @@ export class HttpServerService extends Service {
    * @param {string} pattern - The pattern to match against.
    * @param {Handler[]} handlers - An array of functions that will be called when the route is matched.
    */
-  addRoute(method: Methods, pattern: string, ...handlers: Handler[]) {
+  addRoute(method: Methods, pattern: string, ...handlers: Handler[]): HttpServerService {
     this.router.add(method, pattern, ...handlers)
     this.log.debug('route add:', method, pattern)
+    return this
   }
 
   /**
@@ -106,32 +122,36 @@ export class HttpServerService extends Service {
    * handler
    * @param {Middleware} middleware - Middleware
    */
-  addOnBeforeMiddleware(middleware: Middleware) {
+  addOnBeforeMiddleware(middleware: Middleware): HttpServerService {
     this.onBeforeMiddleware.push(middleware)
+    return this
   }
 
   /**
    * Add a middleware to the list of middlewares that will be called after the request is processed
    * @param {Middleware} middleware - Middleware
    */
-  addOnAfterMiddleware(middleware: Middleware) {
+  addOnAfterMiddleware(middleware: Middleware): HttpServerService {
     this.onAfterMiddleware.push(middleware)
+    return this
   }
 
   /**
    * Set the not found handlers
    * @param {Handler[]} handlers - An array of handlers to be called when the request is not found.
    */
-  setNotFoundHandlers(handlers: Handler[]) {
-    this.notFoundHandlers = handlers
+  setNotFoundHandlers(handlers: Handler[]): HttpServerService {
+    this.notFoundHandlers = handlers.map((handler) => handler.bind(this))
+    return this
   }
 
   /**
    * Set the error handler
    * @param {Handler} handler - A function that takes a `Request` and `Response` object and returns
    */
-  setErrorHandler(handler: Handler) {
-    this.internalServerErrorHandler = handler
+  setErrorHandler(handler: Handler): HttpServerService {
+    this.internalServerErrorHandler = handler.bind(this)
+    return this
   }
 
   /**
@@ -146,7 +166,7 @@ export class HttpServerService extends Service {
     const url = new URL(request.url, 'https://example.org/')
     const method = request.method as Methods
     const route = this.router.find(method, url.pathname.toLowerCase())
-    let context = getNewContext(this.log, request.headers['x-request-id'], route.params)
+    let context = getNewContext(request.headers['x-request-id'], route.params)
     const handlers: Handler[] = []
 
     url.searchParams.forEach((value, name) => {
@@ -161,7 +181,8 @@ export class HttpServerService extends Service {
       const allHandler = [...this.onBeforeMiddleware, ...handlers, ...this.onAfterMiddleware, ...this.notFoundHandlers]
 
       for (const handler of allHandler) {
-        context = await handler(request, response, context)
+        const handlerFunction = handler.bind(this)
+        context = await handlerFunction(request, response, context)
         if (context.isResponseSend) {
           break
         }

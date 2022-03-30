@@ -19,7 +19,6 @@ export const outputPayloadSchema = extendApi(
       example: DEFAULT_TOKEN_EXPIRE,
       title: 'token expiration',
       description: 'a number value in seconds or a string',
-      examples: ['1d', 60],
       default: DEFAULT_TOKEN_EXPIRE,
     }),
   }),

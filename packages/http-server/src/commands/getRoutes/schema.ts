@@ -5,12 +5,7 @@ export const inputPayloadSchema = extendApi(z.undefined())
 
 export const inputParameterSchema = z.object({})
 
-export const outputPayloadSchema = z.object({
-  my: z.object({
-    parameter: z.object({}),
-    some: z.string(),
-  }),
-})
+export const outputPayloadSchema = z.any()
 
 export type InputPayloadType = undefined // z.infer<typeof inputPayloadSchema>
 export type InputParameterType = z.infer<typeof inputParameterSchema>

@@ -1,4 +1,4 @@
-import { getUniqueId, Logger } from '@nobush/core'
+import { getUniqueId } from '@nobush/core'
 
 import { Context, SuccessStatusCode } from '../types'
 
@@ -10,10 +10,9 @@ import { Context, SuccessStatusCode } from '../types'
  * @param parameter - The parameter object that will be passed to the handler.
  * @returns A context object.
  */
-export const getNewContext = (log: Logger, traceId: string | string[] | undefined, parameter = {}): Context => {
+export const getNewContext = (traceId: string | string[] | undefined, parameter = {}): Context => {
   const tId = Array.isArray(traceId) ? traceId[0] : traceId
   return {
-    log,
     isResponseSend: false,
     traceId: tId || getUniqueId(),
     parameter,

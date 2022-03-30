@@ -69,9 +69,10 @@ export class FunctionDefinitionBuilder<
     }
 
     definition.metadata.expose.http.openApi = {
-      inputPayload: this.inputSchema ? generateSchema(this.inputSchema).toString() : undefined,
-      parameter: this.paramsSchema ? generateSchema(this.paramsSchema).toString() : undefined,
-      outputPayload: this.outputSchema ? generateSchema(this.outputSchema).toString() : undefined,
+      description: this.commandDescription,
+      inputPayload: this.inputSchema ? generateSchema(this.inputSchema) : undefined,
+      parameter: this.paramsSchema ? generateSchema(this.paramsSchema) : undefined,
+      outputPayload: this.outputSchema ? generateSchema(this.outputSchema) : undefined,
     }
 
     return definition

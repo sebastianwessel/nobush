@@ -1,4 +1,5 @@
 import { HttpServerConfig } from '../types'
+import { OPENAPI_DEFAULT_INFO, OPENAPI_DEFAULT_MOUNT_PATH } from './defaults.config'
 
 export const getDefaultConfig = (): HttpServerConfig => {
   const defaultConfig: HttpServerConfig = {
@@ -8,6 +9,10 @@ export const getDefaultConfig = (): HttpServerConfig => {
       ca: 'certs/ca.crt',
       key: 'certs/server.key',
       cert: 'certs/server.crt',
+    },
+    openApi: {
+      path: OPENAPI_DEFAULT_MOUNT_PATH,
+      info: OPENAPI_DEFAULT_INFO,
     },
   }
   return defaultConfig

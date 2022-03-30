@@ -19,7 +19,7 @@ export const getDefaultExtractPayloadMiddlewareOptions = (): ExtractPayloadMiddl
 export const createExtractPayloadMiddleware = (options = getDefaultExtractPayloadMiddlewareOptions()): Middleware => {
   const _config = { ...getDefaultExtractPayloadMiddlewareOptions(), ...options }
 
-  const extractPayloadMiddleware: Middleware = async (request, _response, context) => {
+  const extractPayloadMiddleware: Middleware = async function (request, _response, context) {
     const method = request.method
     // if it is some
     if (!['POST', 'PATCH', 'PUT'].includes(method)) {
@@ -34,7 +34,7 @@ export const createExtractPayloadMiddleware = (options = getDefaultExtractPayloa
 
       request.on('aborted', (hadError, code) => {
         if (hadError) {
-          context.log.error('aborted', { hadError, code })
+          this.log.error('aborted', { hadError, code })
         }
       })
 
@@ -43,7 +43,7 @@ export const createExtractPayloadMiddleware = (options = getDefaultExtractPayloa
       })
 
       request.on('error', (err) => {
-        context.log.error('error getting payload', err)
+        this.log.error('error getting payload', err)
         reject(err)
       })
     })

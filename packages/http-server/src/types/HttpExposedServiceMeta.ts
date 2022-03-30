@@ -7,9 +7,11 @@ export type HttpExposedServiceMeta = {
       path: string
       contentType?: ContentType // if not set we expect 'application/json'
       openApi?: {
-        inputPayload?: string
-        parameter?: string
-        outputPayload?: string
+        description: string
+        tags?: string[]
+        inputPayload?: unknown
+        parameter?: unknown
+        outputPayload?: unknown
       }
     }
   }

@@ -53,4 +53,6 @@ export const serviceCommandsToRestApi: HttpServiceSubscriptionCallBack<InfoServi
   }
 
   this.addRoute(method, path, ...beforeMiddleware, getHandler(), ...afterMiddleware)
+
+  this.routeDefinitions.push(message.data)
 }

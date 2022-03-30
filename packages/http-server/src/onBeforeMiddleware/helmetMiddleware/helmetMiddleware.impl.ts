@@ -25,17 +25,18 @@ export const createHelmetMiddleware = (options = getDefaultHelmetMiddlewareOptio
 
   const runHelmet = helmet()
 
-  const helmetMiddleware: Middleware = async (request, response, context) =>
-    new Promise<Context>((resolve, reject) => {
+  const helmetMiddleware: Middleware = async function (request, response, context) {
+    return new Promise<Context>((resolve, reject) => {
       runHelmet(request as unknown as IncomingMessage, response as unknown as ServerResponse, (err) => {
         if (err) {
-          context.log.error(err)
+          this.log.error(err)
           reject(err)
         } else {
           resolve(context)
         }
       })
     })
+  }
 
   return helmetMiddleware
 }

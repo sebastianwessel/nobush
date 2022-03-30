@@ -39,15 +39,15 @@ export const getDefaultProxyMiddlewareOptions = (): ProxyMiddlewareOptions => {
 export const getProxyMiddleware = (options = getDefaultProxyMiddlewareOptions()): Middleware => {
   const config = { ...getDefaultProxyMiddlewareOptions(), ...options }
 
-  const proxyMiddleware: Middleware = async (request, response, context) =>
-    new Promise<Context>((resolve, reject) => {
+  const proxyMiddleware: Middleware = async function (request, response, context) {
+    return new Promise<Context>((resolve, reject) => {
       proxy.web(
         request as unknown as IncomingMessage,
         response as unknown as ServerResponse,
         config.web,
         (err, _req, _res) => {
           if (err) {
-            context.log.error(err)
+            this.log.error(err)
             reject(err)
           }
           context.isResponseSend = true
@@ -55,5 +55,6 @@ export const getProxyMiddleware = (options = getDefaultProxyMiddlewareOptions())
         },
       )
     })
+  }
   return proxyMiddleware
 }
