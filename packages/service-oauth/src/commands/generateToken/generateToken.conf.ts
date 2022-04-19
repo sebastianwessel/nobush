@@ -7,3 +7,4 @@ export const builder = new FunctionDefinitionBuilder('generateToken', 'generateT
   .addInputSchema(inputPayloadSchema)
   .addParameterSchema(inputParameterSchema)
   .addOutputSchema(outputPayloadSchema)
+  .addTags('OAuth')

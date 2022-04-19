@@ -1,3 +1,11 @@
-import { builder } from './testFunction.conf'
+import { FunctionDefinitionBuilder } from '@nobush/helper'
 
-export default builder
+import { inputParameterSchema, inputPayloadSchema, outputPayloadSchema } from './schema'
+import { testFunction } from './testFunction.impl'
+
+export default new FunctionDefinitionBuilder('testFunction', 'some simple test function', testFunction)
+  .addInputSchema(inputPayloadSchema)
+  .addParameterSchema(inputParameterSchema)
+  .addOutputSchema(outputPayloadSchema)
+  .addTags('test')
+  .exposeAsHttpEndpoint('POST', '/test')

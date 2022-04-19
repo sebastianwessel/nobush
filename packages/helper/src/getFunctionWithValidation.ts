@@ -22,7 +22,7 @@ export const getFunctionWithValidation = function <
       try {
         safePayload = inputPayloadSchema.parse(payload)
       } catch (err) {
-        this.log.error('input validation for payload failed', err)
+        this.log.warn('input validation for payload failed', err)
         if (err instanceof ZodError) {
           throw new HandledError(ErrorCode.BadRequest, undefined, err.issues)
         }
@@ -35,7 +35,7 @@ export const getFunctionWithValidation = function <
       try {
         safeParams = inputParameterSchema.parse(params)
       } catch (err) {
-        this.log.error('input validation for params failed', err)
+        this.log.warn('input validation for params failed', err)
         if (err instanceof ZodError) {
           throw new HandledError(ErrorCode.BadRequest, undefined, err.issues)
         }
@@ -60,11 +60,4 @@ export const getFunctionWithValidation = function <
     return safeOutput
   }
   return wrapped
-  /*
-  return {
-    call: wrapped,
-    inputPayloadSchema: inputPayloadSchema,
-    inputParameterSchema: inputParameterSchema,
-    outputPayloadSchema: outputPayloadSchema,
-  } */
 }

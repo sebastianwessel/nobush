@@ -1,3 +1,4 @@
+import { CorrelationId } from '../CorrelationId'
 import { EBMessage } from '../EBMessage'
 import { EBMessageAddress } from '../EBMessageAddress'
 import { EBMessageBase } from '../EBMessageBase'
@@ -9,6 +10,7 @@ import { EBMessageType } from '../EBMessageType.enum'
  */
 export type CommandSuccessResponse<PayloadType = unknown> = {
   messageType: EBMessageType.CommandSuccessResponse
+  correlationId: CorrelationId
   sender: EBMessageAddress
   receiver: EBMessageAddress
   isMultipart?: boolean // multi-message handling

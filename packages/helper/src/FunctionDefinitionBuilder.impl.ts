@@ -1,6 +1,6 @@
 import { generateSchema } from '@anatine/zod-openapi'
 import { CommandDefinition, CommandFunction, Service } from '@nobush/core'
-import { HttpExposedServiceMeta } from '@nobush/http-server'
+import { HttpExposedServiceMeta, QueryParameter } from '@nobush/http-server'
 import { z } from 'zod'
 
 import { getFunctionWithValidation } from './getFunctionWithValidation'
@@ -13,15 +13,21 @@ export class FunctionDefinitionBuilder<
   ParamsType = unknown,
   ResultType = unknown,
 > {
-  private httpMetadata: HttpExposedServiceMeta | undefined
-  private inputSchema: z.ZodType<PayloadType> | undefined
-  private outputSchema: z.ZodType<ResultType> | undefined
-  private paramsSchema: z.ZodType<ParamsType> | undefined
+  private httpMetadata?: HttpExposedServiceMeta
+  private inputSchema?: z.ZodType<PayloadType>
+  private outputSchema?: z.ZodType<ResultType>
+  private paramsSchema?: z.ZodType<ParamsType>
+
+  private queryParameter: QueryParameter[] = []
+
+  private tags: string[] = []
+
+  private summary?: string
 
   // eslint-disable-next-line no-useless-constructor
   constructor(
     private commandName: string,
-    private commandDescription = '',
+    private commandDescription: string,
     private fn: CommandFunction<ServiceClassType, PayloadType, ParamsType, ResultType>,
   ) {}
 
@@ -40,6 +46,16 @@ export class FunctionDefinitionBuilder<
     return this
   }
 
+  addQueryParameters(...queryParams: QueryParameter[]) {
+    this.queryParameter.push(...queryParams)
+    return this
+  }
+
+  addTags(...tags: string[]) {
+    this.tags.push(...tags)
+    return this
+  }
+
   exposeAsHttpEndpoint(method: HttpMethod, path: string, contentType?: string) {
     this.httpMetadata = {
       expose: {
@@ -50,6 +66,11 @@ export class FunctionDefinitionBuilder<
         },
       },
     }
+    return this
+  }
+
+  setSummary(summary: string) {
+    this.summary = summary
     return this
   }
 
@@ -70,9 +91,12 @@ export class FunctionDefinitionBuilder<
 
     definition.metadata.expose.http.openApi = {
       description: this.commandDescription,
+      summary: this.summary || this.commandName,
       inputPayload: this.inputSchema ? generateSchema(this.inputSchema) : undefined,
       parameter: this.paramsSchema ? generateSchema(this.paramsSchema) : undefined,
       outputPayload: this.outputSchema ? generateSchema(this.outputSchema) : undefined,
+      query: this.queryParameter,
+      tags: this.tags,
     }
 
     return definition

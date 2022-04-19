@@ -1,3 +1,4 @@
+import { CorrelationId } from '../CorrelationId'
 import { EBMessage } from '../EBMessage'
 import { EBMessageAddress } from '../EBMessageAddress'
 import { EBMessageBase } from '../EBMessageBase'
@@ -9,6 +10,7 @@ import { ErrorCode } from '../ErrorCode.enum'
  */
 export type CommandErrorResponse = {
   messageType: EBMessageType.CommandErrorResponse
+  correlationId: CorrelationId
   sender: EBMessageAddress
   receiver: EBMessageAddress
   response: {

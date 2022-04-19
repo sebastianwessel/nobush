@@ -27,7 +27,11 @@ export const serviceCommandsToRestApi: HttpServiceSubscriptionCallBack<InfoServi
   const data = message.data.expose
   const version = message.sender.serviceVersion.split('.')[0]
   const method = data.http.method
-  const path = join('/api', `v${version}`, data.http.path)
+  const apiMountPath = this.config.apiMountPath
+  const path = join(apiMountPath || '/api', `v${version}`, data.http.path)
+
+  data.http.path = path
+
   const contentType = data.http.contentType || 'application/json'
 
   const getHandler = (): Handler => {

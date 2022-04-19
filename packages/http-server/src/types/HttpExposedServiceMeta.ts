@@ -1,4 +1,7 @@
+import type { SchemaObject } from 'openapi3-ts'
+
 import { ContentType } from './ContentType'
+import { QueryParameter } from './QueryParameter'
 
 export type HttpExposedServiceMeta = {
   expose: {
@@ -8,10 +11,12 @@ export type HttpExposedServiceMeta = {
       contentType?: ContentType // if not set we expect 'application/json'
       openApi?: {
         description: string
+        summary: string
         tags?: string[]
-        inputPayload?: unknown
-        parameter?: unknown
-        outputPayload?: unknown
+        inputPayload?: SchemaObject
+        parameter?: SchemaObject
+        query?: QueryParameter[]
+        outputPayload?: SchemaObject
       }
     }
   }

@@ -8,3 +8,4 @@ export const builder = new FunctionDefinitionBuilder('authenticate', 'authentica
   .addParameterSchema(inputParameterSchema)
   .addOutputSchema(outputPayloadSchema)
   .exposeAsHttpEndpoint('POST', '/auth/authenticate')
+  .addTags('OAuth')

@@ -8,3 +8,4 @@ export const builder = new FunctionDefinitionBuilder('refreshToken', 'refreshTok
   .addParameterSchema(inputParameterSchema)
   .addOutputSchema(outputPayloadSchema)
   .exposeAsHttpEndpoint('POST', '/auth/token/refresh')
+  .addTags('OAuth')

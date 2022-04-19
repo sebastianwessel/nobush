@@ -4,12 +4,11 @@ import { TestService } from '../../TestService'
 import { InputParameterType, InputPayloadType, OutputPayloadType } from './schema'
 
 export const testFunction: CommandFunction<TestService, InputPayloadType, InputParameterType, OutputPayloadType> =
-  async function (payload, parameter) {
+  async function (payload, _parameter) {
     this.log.debug('test function called')
     return {
       my: {
         payload,
-        parameter,
       },
     }
   }

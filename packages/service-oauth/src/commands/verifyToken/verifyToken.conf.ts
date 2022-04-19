@@ -8,3 +8,4 @@ export const builder = new FunctionDefinitionBuilder('verifyToken', 'verifyToken
   .addParameterSchema(inputParameterSchema)
   .addOutputSchema(outputPayloadSchema)
   .exposeAsHttpEndpoint('POST', '/auth/token/verify')
+  .addTags('OAuth')

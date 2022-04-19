@@ -1,7 +1,10 @@
 import { extendApi } from '@anatine/zod-openapi'
 import { z } from 'zod'
 
-export const inputParameterSchema = z.object({})
+export const pathParameterSchema = z.object({})
+export const inputQuerySchema = z.object({})
+
+export const inputParameterSchema = pathParameterSchema.merge(inputQuerySchema)
 
 export const inputPayloadSchema = extendApi(
   z.object({
@@ -16,7 +19,6 @@ export const outputPayloadSchema = z.object({
       input: z.string(),
       one: z.string(),
     }),
-    parameter: z.object({}),
   }),
 })
 

@@ -1,5 +1,5 @@
 import { getDefaultEventBridgeConfig } from '../config'
-import { getNewSubscriptionId, getNewTraceId } from '../helper'
+import { getNewCorrelationId, getNewSubscriptionId, getNewTraceId } from '../helper'
 import {
   EBMessage,
   EBMessageAddress,
@@ -46,6 +46,7 @@ export class DefaultEventBridge implements EventBridge {
       ...message,
       timestamp: Date.now(),
       traceId: message.traceId || getNewTraceId(),
+      correlationId: message.correlationId || getNewCorrelationId(),
     }
 
     if (isInfoMessage(msg)) {

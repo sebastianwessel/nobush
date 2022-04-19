@@ -8,6 +8,7 @@ import { extname, join } from 'path'
 
 export type StaticFileMiddlewareOptions = {
   path: string
+  removeStartingPath?: string
   gzipMimeTypes?: ContentType[]
 }
 
@@ -16,20 +17,19 @@ export type StaticFileMiddlewareOptions = {
  * @returns A middleware function that can be used in the http server.
  */
 export const getDefaultStaticFileMiddlewareOptions = (): StaticFileMiddlewareOptions => {
-  const defaultConfig = {
+  return {
     path: '../public',
     gzipMimeTypes: [
       'application/json',
-      'application/javascript',
+      //  'application/javascript',
       'text/csv',
-      'text/css',
+      // 'text/css',
       'text/html',
       'text/javascript',
       'text/markdown',
       'text/plain',
     ],
   }
-  return defaultConfig
 }
 
 export const createStaticFileMiddleware = (options = getDefaultStaticFileMiddlewareOptions()): Middleware => {
@@ -41,7 +41,11 @@ export const createStaticFileMiddleware = (options = getDefaultStaticFileMiddlew
     }
 
     const url = new URL(request.url, 'https://example.org/')
-    const reqPath = url.pathname
+    let reqPath = url.pathname
+
+    if (config.removeStartingPath) {
+      reqPath = reqPath.replace(config.removeStartingPath, '')
+    }
 
     let filePath = join(config.path, reqPath)
 
@@ -63,7 +67,7 @@ export const createStaticFileMiddleware = (options = getDefaultStaticFileMiddlew
       return context
     }
 
-    const result = new Promise<Context>((resolve, reject) => {
+    return new Promise<Context>((resolve, reject) => {
       const mimeType = lookup(filePath)
       const responseContentType = contentType(extname(filePath))
       // deepcode ignore PT: <we know that this might be dangerous in general to serve static files>
@@ -97,8 +101,6 @@ export const createStaticFileMiddleware = (options = getDefaultStaticFileMiddlew
         resolve(context)
       })
     })
-
-    return result
   }
 
   return staticFileMiddleware

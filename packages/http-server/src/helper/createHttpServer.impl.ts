@@ -31,7 +31,7 @@ export const createHttpServer = async (config: HttpServerConfig, baseLogger: Log
     server.once('listening', onSuccess)
     server.once('error', onError)
 
-    server.listen(config.port, '', undefined)
+    server.listen(config.port, '')
   })
 
   server.on('unknownProtocol', () => log.error('unknown protocol'))

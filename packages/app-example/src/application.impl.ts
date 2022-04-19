@@ -5,6 +5,7 @@ import { createStaticFileMiddleware } from '@nobush/middleware-static'
 import { OAuthService } from '@nobush/service-oauth'
 import { Command } from 'commander'
 import { resolve } from 'path'
+import * as swaggerUi from 'swagger-ui-dist'
 
 import packageJson from '../package.json'
 import { getDatabaseConfig, getEventBridgeConfig, getGeneralConfig, getOauthConfig, initConfigs } from './config'
@@ -57,6 +58,17 @@ export const startApplication = async () => {
 
   httpServerService.setNotFoundHandlers(notFoundHandlers)
 
+  const swaggerUiHandler = createStaticFileMiddleware({ path: swaggerUi.absolutePath(), removeStartingPath: '/api' })
+
+  httpServerService.addRoute(
+    'GET',
+    '/api/*',
+    async (_req, _res, context) => {
+      return context
+    },
+    swaggerUiHandler,
+  )
+
   await httpServerService.start()
 
   const oauthService = await OAuthService.createInstance(baseLogger, eventBridge, getOauthConfig())
@@ -65,9 +77,11 @@ export const startApplication = async () => {
   const testService = await TestService.createInstance(baseLogger, eventBridge)
   await testService.start()
 
+  /*
   try {
     await initDatabase(getDatabaseConfig(), baseLogger)
   } catch (error) {
     baseLogger.error('database not ready', error)
   }
+  */
 }

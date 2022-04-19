@@ -1,26 +1,130 @@
+import type { OpenAPIObject, ParameterObject, RequestBodyObject } from 'openapi3-ts'
+import { isReferenceObject } from 'openapi3-ts'
+
 import { OPENAPI_DEFAULT_INFO } from '../../config'
 import { Handler } from '../../types'
 
 export const openApiHandler: Handler = async function (_request, _response, context) {
-  const paths: Record<string, unknown> = {}
+  const paths: Record<string, Record<string, unknown>> = {}
 
-  const info = this.config.openApi?.info || { info: OPENAPI_DEFAULT_INFO }
+  const info = this.config.openApi?.info || OPENAPI_DEFAULT_INFO
+  const servers = this.config.openApi?.servers || [{ url: `https://localhost:${this.config.port}` }]
+  const components = this.config.openApi?.components
+  const security = this.config.openApi?.security
+  const externalDocs = this.config.openApi?.externalDocs
 
-  const json = {
+  const json: OpenAPIObject = {
     openapi: '3.0.3',
     info,
-    // servers,
+    servers,
     paths,
-    //   components,
-    //   security,
+    components,
+    security,
     tags: this.config.openApi?.tags,
-    //    externalDocs,
+    externalDocs,
   }
+
+  const findPathParamsRegex = /:[^:/]+/gm
 
   this.routeDefinitions.forEach((entry) => {
     const definition = entry.expose.http
-    paths[definition.path] = {
+
+    let m
+    let routeParams: string[] = []
+    while ((m = findPathParamsRegex.exec(definition.path)) !== null) {
+      if (m.index === findPathParamsRegex.lastIndex) {
+        findPathParamsRegex.lastIndex++
+      }
+
+      routeParams = m.map((name) => name)
+    }
+
+    const pathParams: Record<string, unknown>[] = routeParams.map((pathParamName): ParameterObject => {
+      const name = pathParamName.replace('?', '').replace(':', '')
+      const required = !pathParamName.endsWith('?')
+
+      const schema = definition.openApi?.parameter?.properties?.[name]
+
+      if (!schema) {
+        this.log.warn(
+          `${definition.method} ${definition.path}: Path parameter ${name} is not in parameter schema and will not be available in service function`,
+        )
+      }
+
+      if (!!schema && isReferenceObject(schema)) {
+        return {
+          in: 'path',
+          name,
+          required,
+          ...schema,
+        }
+      }
+
+      return {
+        in: 'path',
+        name,
+        required,
+        schema,
+        description: schema?.description || schema?.title,
+      }
+    })
+
+    const queryParams =
+      definition.openApi?.query?.map((queryParam): ParameterObject => {
+        const name = queryParam.name
+        const schema = definition.openApi?.parameter?.properties?.[name]
+        const required = queryParam.required
+
+        if (!schema) {
+          this.log.warn(
+            `${definition.method} ${definition.path}: Query parameter ${name} is not in parameter schema and will not be available in service function`,
+          )
+        }
+
+        if (!!schema && isReferenceObject(schema)) {
+          return {
+            in: 'query',
+            name,
+            required,
+            ...schema,
+          }
+        }
+
+        return {
+          in: 'query',
+          name,
+          required,
+          schema,
+          description: schema?.description || schema?.title,
+        }
+      }) || []
+
+    let path = definition.path
+    routeParams.forEach((pathParamName) => {
+      const name = pathParamName.replace('?', '').replace(':', '')
+      path = path.replace(pathParamName, `{${name}}`)
+    })
+
+    let requestBody: RequestBodyObject | undefined
+
+    if (['POST', 'PATCH', 'PUT'].includes(definition.method)) {
+      requestBody = {
+        content: {
+          [definition.contentType || 'application/json']: {
+            schema: definition.openApi?.inputPayload,
+          },
+        },
+      }
+    }
+
+    paths[path] = {
+      ...paths[path],
       [definition.method.toLowerCase()]: {
+        description: definition.openApi?.description,
+        summary: definition.openApi?.summary,
+        parameters: [...pathParams, ...queryParams],
+        tags: definition.openApi?.tags,
+        requestBody,
         responses: {
           200: {
             description: definition.openApi?.description,

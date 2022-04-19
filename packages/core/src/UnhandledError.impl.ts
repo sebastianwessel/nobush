@@ -20,8 +20,7 @@ export class UnhandledError extends Error {
    * @returns UnhandledError
    */
   static fromMessage(message: CommandErrorResponse): UnhandledError {
-    const error = new UnhandledError(message.response.status, message.response.message, message.response.data)
-    return error
+    return new UnhandledError(message.response.status, message.response.message, message.response.data)
   }
 
   /**

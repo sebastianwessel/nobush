@@ -1,12 +1,4 @@
-import {
-  ErrorCode,
-  EventBridge,
-  HandledError,
-  isCommandErrorResponse,
-  Logger,
-  Service,
-  UnhandledError,
-} from '@nobush/core'
+import { ErrorCode, EventBridge, HandledError, Logger, Service, UnhandledError } from '@nobush/core'
 import { Http2SecureServer, Http2ServerRequest, Http2ServerResponse } from 'http2'
 import Trouter, { Methods } from 'trouter'
 import { URL } from 'url'
@@ -179,7 +171,6 @@ export class HttpServerService extends Service {
 
     try {
       const allHandler = [...this.onBeforeMiddleware, ...handlers, ...this.onAfterMiddleware, ...this.notFoundHandlers]
-
       for (const handler of allHandler) {
         const handlerFunction = handler.bind(this)
         context = await handlerFunction(request, response, context)
@@ -204,10 +195,10 @@ export class HttpServerService extends Service {
         return
       }
 
-      if (isCommandErrorResponse(err)) {
-        response.statusCode = err.response.status
+      if (err instanceof UnhandledError && err.errorCode >= 400 && err.errorCode < 500) {
+        response.statusCode = err.errorCode
         response.setHeader('content-type', 'application/json; charset=utf-8')
-        response.end(JSON.stringify({ ...err.response }))
+        response.end(err.toString())
         return
       }
 

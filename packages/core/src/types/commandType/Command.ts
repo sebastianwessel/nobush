@@ -1,3 +1,4 @@
+import { CorrelationId } from '../CorrelationId'
 import { EBMessage } from '../EBMessage'
 import { EBMessageAddress } from '../EBMessageAddress'
 import { EBMessageBase } from '../EBMessageBase'
@@ -16,6 +17,7 @@ import { EBMessageType } from '../EBMessageType.enum'
  */
 export type Command<PayloadType = unknown, ParameterType = Record<string, unknown>> = {
   messageType: EBMessageType.Command
+  correlationId: CorrelationId
   sender: EBMessageAddress
   receiver: EBMessageAddress
   command: {

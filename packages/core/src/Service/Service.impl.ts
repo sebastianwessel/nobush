@@ -4,6 +4,7 @@ import {
   createInfoMessage,
   createSuccessResponse,
   getCleanedMessage,
+  getNewCorrelationId,
   getNewEBMessageId,
 } from '../helper'
 import {
@@ -17,6 +18,7 @@ import {
   InfoMessageType,
   isCommand,
   isCommandErrorResponse,
+  isCommandResponse,
   isCommandSuccessResponse,
   Logger,
   ServiceClass,
@@ -162,26 +164,29 @@ export class Service extends ServiceClass {
     }
 
     // if it is a response to request resolve/reject pending local request
-    const pending = this.pendingInvocations.get(message.id)
-    if (pending) {
-      if (isCommandSuccessResponse(message)) {
-        pending.resolve(message.response)
-      } else if (isCommandErrorResponse(message)) {
-        const error = UnhandledError.fromMessage(message)
-        pending.reject(error)
+    if (isCommandResponse(message)) {
+      const pending = this.pendingInvocations.get(message.correlationId)
+      if (pending) {
+        if (isCommandSuccessResponse(message)) {
+          pending.resolve(message.response)
+        } else if (isCommandErrorResponse(message)) {
+          const error = UnhandledError.fromMessage(message)
+          pending.reject(error)
+        }
+        this.pendingInvocations.delete(message.correlationId)
+      } else {
+        this.log.warn('invocation message id not found - maybe already timed out', getCleanedMessage(message))
       }
-      this.pendingInvocations.delete(message.id)
-    } else {
-      this.log.warn('invocation message id not found - maybe already timed out', getCleanedMessage(message))
     }
   }
 
   async invoke<T>(
-    input: Omit<Command, 'id' | 'sender' | 'messageType' | 'timestamp'>,
+    input: Omit<Command, 'id' | 'sender' | 'messageType' | 'timestamp' | 'correlationId'>,
     ttl = this.eventBridge.defaultTtl,
   ): Promise<T> {
     const command: Command = {
       id: getNewEBMessageId(),
+      correlationId: getNewCorrelationId(),
       timestamp: Date.now(),
       messageType: EBMessageType.Command,
       ...input,
@@ -192,7 +197,7 @@ export class Service extends ServiceClass {
       },
     }
     return new Promise((resolve, reject) => {
-      this.pendingInvocations.set(command.id, {
+      this.pendingInvocations.set(command.correlationId, {
         ttl: Date.now() + ttl,
         command,
         resolve,
@@ -241,12 +246,13 @@ export class Service extends ServiceClass {
       const successResponse = createSuccessResponse(message, payload)
       await this.eventBridge.emit(successResponse)
     } catch (error) {
-      if (!(error instanceof HandledError)) {
-        this.log.error('executeCommand unhandled error', { error, message: getCleanedMessage(message) })
+      if (error instanceof HandledError) {
+        await this.eventBridge.emit(createErrorResponse(message, error.errorCode, error))
+        return
       }
 
-      const errorResponse = createErrorResponse(message, ErrorCode.InternalServerError, error)
-      await this.eventBridge.emit(errorResponse)
+      this.log.error('executeCommand unhandled error', { error, message: getCleanedMessage(message) })
+      await this.eventBridge.emit(createErrorResponse(message, ErrorCode.InternalServerError, error))
     }
   }
 
