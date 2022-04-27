@@ -2,6 +2,7 @@ import { constants } from 'http2'
 
 export enum ErrorCode {
   BadRequest = constants.HTTP_STATUS_BAD_REQUEST,
+  Conflict = constants.HTTP_STATUS_CONFLICT,
   Unauthorized = constants.HTTP_STATUS_UNAUTHORIZED,
   PaymentRequired = constants.HTTP_STATUS_PAYMENT_REQUIRED,
   Forbidden = constants.HTTP_STATUS_FORBIDDEN,

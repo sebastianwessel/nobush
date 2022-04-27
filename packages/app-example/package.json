@@ -23,9 +23,9 @@
   "author": "Sebastian Wessel",
   "license": "ISC",
   "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
     "@types/jest": "^27.4.1",
     "@types/node": "^16.0.0",
-    "@types/pg": "^8.6.5",
     "@types/sinon": "^10.0.11",
     "@types/swagger-ui-dist": "^3.30.1",
     "@typescript-eslint/eslint-plugin": "^5.14.0",
@@ -54,10 +54,12 @@
     "@nobush/middleware-proxy": "file:../middleware-proxy",
     "@nobush/middleware-static": "file:../middleware-static",
     "@nobush/service-oauth": "file:../service-oauth",
+    "bcrypt": "^5.0.1",
+    "better-sqlite3": "^7.5.1",
     "commander": "^9.0.0",
-    "pg": "^8.7.3",
     "swagger-ui-dist": "^4.10.3",
     "ts-node": "^10.0.0",
-    "typeorm": "^0.2.45"
+    "typeorm": "^0.2.45",
+    "typeorm-naming-strategies": "^4.1.0"
   }
 }

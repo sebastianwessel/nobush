@@ -1,4 +1,5 @@
-import type { OpenAPIObject, ParameterObject, RequestBodyObject } from 'openapi3-ts'
+import { ErrorCode } from '@nobush/core'
+import type { OpenAPIObject, ParameterObject, RequestBodyObject, SchemaObject } from 'openapi3-ts'
 import { isReferenceObject } from 'openapi3-ts'
 
 import { OPENAPI_DEFAULT_INFO } from '../../config'
@@ -22,6 +23,28 @@ export const openApiHandler: Handler = async function (_request, _response, cont
     security,
     tags: this.config.openApi?.tags,
     externalDocs,
+  }
+
+  const getErrorResponseSchema = (code: ErrorCode, message: string, schema?: SchemaObject) => {
+    return {
+      type: 'object',
+
+      properties: {
+        status: {
+          type: 'number',
+          min: 100,
+          title: 'the error status code',
+          example: code,
+        },
+        message: {
+          type: 'string',
+          title: 'the error message',
+          example: message,
+        },
+        data: schema,
+      },
+      required: ['status', 'message'],
+    }
   }
 
   const findPathParamsRegex = /:[^:/]+/gm
@@ -117,6 +140,67 @@ export const openApiHandler: Handler = async function (_request, _response, cont
       }
     }
 
+    const inputValidationFailed: SchemaObject = {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          validation: {
+            type: 'string',
+          },
+          code: {
+            type: 'string',
+          },
+          message: {
+            type: 'string',
+          },
+          path: {
+            type: 'array',
+            items: {
+              type: 'string',
+            },
+          },
+        },
+      },
+    }
+
+    const errorResponses: Record<number, unknown> = {}
+
+    const getErrorName = (code: ErrorCode) => ErrorCode[code].replace(/[A-Z]/g, (letter) => ` ${letter}`)
+
+    if (definition.openApi?.inputPayload) {
+      errorResponses[400] = {
+        description: getErrorName(400),
+        content: {
+          'application/json': {
+            schema: getErrorResponseSchema(400, 'input validation failed', inputValidationFailed),
+          },
+        },
+      }
+    }
+
+    if (definition.openApi?.parameter) {
+      errorResponses[404] = {
+        description: getErrorName(404),
+        content: {
+          'application/json': {
+            schema: getErrorResponseSchema(404, 'ressource for given id does not exist'),
+          },
+        },
+      }
+    }
+
+    definition.openApi?.additionalErrorCodes?.forEach((code) => {
+      errorResponses[code] = {
+        description: getErrorName(code),
+        content: {
+          'application/json': {
+            schema: getErrorResponseSchema(code, getErrorName(code)),
+          },
+        },
+      }
+    })
+
     paths[path] = {
       ...paths[path],
       [definition.method.toLowerCase()]: {
@@ -126,7 +210,7 @@ export const openApiHandler: Handler = async function (_request, _response, cont
         tags: definition.openApi?.tags,
         requestBody,
         responses: {
-          200: {
+          [definition.openApi?.outputPayload ? 200 : 204]: {
             description: definition.openApi?.description,
             content: {
               [definition.contentType || 'application/json']: {
@@ -134,6 +218,7 @@ export const openApiHandler: Handler = async function (_request, _response, cont
               },
             },
           },
+          ...errorResponses,
         },
       },
     }

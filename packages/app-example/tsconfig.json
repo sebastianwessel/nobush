@@ -16,7 +16,7 @@
     //"skipLibCheck": true,
     //"noFallthroughCasesInSwitch": false,
     "noImplicitAny": true,
-    //"strictPropertyInitialization": false,
+    "strictPropertyInitialization": false,
     "esModuleInterop": true,
     "resolveJsonModule": true
   }

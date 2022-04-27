@@ -6,7 +6,13 @@ dist
 
 bundle
 
-config/develop
+config/develop/certs/*.key
+config/develop/certs/*.crt
+config/develop/certs/*.pub
+config/develop/certs/*.priv
+config/develop/certs/*.csr
 
 .eslintcache
 .dccache
+
+database/example.*

@@ -1,3 +1,5 @@
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies'
+
 import { config } from './config'
 import { DatabaseConfig } from './types'
 
@@ -9,15 +11,14 @@ export const getDefaultDatabaseConfig = (): DatabaseConfig => {
   const defaultConfig: DatabaseConfig = {
     logLevel: 'error',
     typeorm: {
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      database: 'example',
-      synchronize: false,
+      type: 'better-sqlite3',
+      database: 'database/example.sqlite',
+      synchronize: true,
       logging: false,
-      entities: ['src/entities/**/*.ts'],
-      migrations: ['src/migrations/**/*.ts'],
-      subscribers: ['src/subscribers/**/*.ts'],
+      entities: ['src/database/entities/**/*.entity.ts'],
+      migrations: ['src/database/migrations/**/*.migration.ts'],
+      subscribers: ['src/subscribers/**/*.subscriber.ts'],
+      namingStrategy: new SnakeNamingStrategy(),
     },
   }
   return defaultConfig
@@ -28,10 +29,22 @@ export const getDefaultDatabaseConfig = (): DatabaseConfig => {
  * @returns The database configuration object.
  */
 export const getDatabaseConfig = (): DatabaseConfig => {
-  let conf: DatabaseConfig = getDefaultDatabaseConfig()
-  if (config['database']) {
-    conf = { ...conf, ...(config['database'] as DatabaseConfig) }
+  const conf: DatabaseConfig = getDefaultDatabaseConfig()
+  if (!config['database']) {
+    return conf
   }
 
-  return conf
+  const final: DatabaseConfig = {
+    ...(config['database'] as DatabaseConfig),
+  }
+  final.typeorm = {
+    ...final.typeorm,
+    entities: conf.typeorm.entities,
+    migrations: conf.typeorm.migrations,
+    subscribers: conf.typeorm.subscribers,
+    namingStrategy: conf.typeorm.namingStrategy,
+    synchronize: conf.typeorm.synchronize,
+  }
+
+  return final
 }

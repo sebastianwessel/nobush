@@ -1,3 +1,4 @@
+import { ErrorCode } from '@nobush/core'
 import type { SchemaObject } from 'openapi3-ts'
 
 import { ContentType } from './ContentType'
@@ -17,6 +18,7 @@ export type HttpExposedServiceMeta = {
         parameter?: SchemaObject
         query?: QueryParameter[]
         outputPayload?: SchemaObject
+        additionalErrorCodes?: ErrorCode[]
       }
     }
   }

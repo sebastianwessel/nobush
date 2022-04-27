@@ -1,4 +1,4 @@
-import { EBMessageType, SubscriptionDefinition } from '@nobush/core'
+import { EBMessageType, InfoServiceFunctionAdded, SubscriptionDefinition } from '@nobush/core'
 
 import { serviceCommandsToRestApi } from './serviceCommandsToRestApi.impl'
 
@@ -7,8 +7,8 @@ import { serviceCommandsToRestApi } from './serviceCommandsToRestApi.impl'
  * `serviceCommandsToRestApi` function
  * @returns A subscription definition.
  */
-export const getServiceCommandsToRestApi = (): SubscriptionDefinition => {
-  const subscription: SubscriptionDefinition = {
+export const getServiceCommandsToRestApi = (): SubscriptionDefinition<InfoServiceFunctionAdded> => {
+  const subscription: SubscriptionDefinition<InfoServiceFunctionAdded> = {
     subscriptionName: 'AddServiceCommandSubscription',
     subscriptionDescription:
       'subscription which listens for infos about commands from services which should be exposed as rest api endpoints',

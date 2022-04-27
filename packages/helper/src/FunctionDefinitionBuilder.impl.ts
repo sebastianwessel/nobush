@@ -1,5 +1,5 @@
 import { generateSchema } from '@anatine/zod-openapi'
-import { CommandDefinition, CommandFunction, Service } from '@nobush/core'
+import { CommandDefinition, CommandFunction, ErrorCode, Service } from '@nobush/core'
 import { HttpExposedServiceMeta, QueryParameter } from '@nobush/http-server'
 import { z } from 'zod'
 
@@ -23,6 +23,8 @@ export class FunctionDefinitionBuilder<
   private tags: string[] = []
 
   private summary?: string
+
+  private errorStatusCodes: ErrorCode[] = []
 
   // eslint-disable-next-line no-useless-constructor
   constructor(
@@ -53,6 +55,11 @@ export class FunctionDefinitionBuilder<
 
   addTags(...tags: string[]) {
     this.tags.push(...tags)
+    return this
+  }
+
+  addErrorStatusCodes(...codes: ErrorCode[]) {
+    this.errorStatusCodes.push(...codes)
     return this
   }
 
@@ -97,6 +104,7 @@ export class FunctionDefinitionBuilder<
       outputPayload: this.outputSchema ? generateSchema(this.outputSchema) : undefined,
       query: this.queryParameter,
       tags: this.tags,
+      additionalErrorCodes: this.errorStatusCodes,
     }
 
     return definition

@@ -120,6 +120,7 @@ export class Service extends ServiceClass {
 
     // register subscriptions for this service
     for (const subscription of subscriptions) {
+      this.log.debug('start subscription', subscription.subscriptionName)
       await this.subscribe(subscription)
     }
 

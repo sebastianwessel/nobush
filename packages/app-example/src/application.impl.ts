@@ -10,8 +10,9 @@ import * as swaggerUi from 'swagger-ui-dist'
 import packageJson from '../package.json'
 import { getDatabaseConfig, getEventBridgeConfig, getGeneralConfig, getOauthConfig, initConfigs } from './config'
 import { getHttpServerConfig } from './config/getHttpServerConfig.impl'
-import { initDatabase } from './database'
-import { TestService } from './service/TestService'
+import { initDatabase, runMigrations } from './database'
+// import { TestService } from './service/TestService'
+import { UserService } from './service/User/UserService'
 
 export const startApplication = async () => {
   const program = new Command()
@@ -37,6 +38,13 @@ export const startApplication = async () => {
   const baseLogger = initLogger(defaultLogLevel)
 
   baseLogger.info(`${applicationName} ${version}`)
+
+  try {
+    await initDatabase(getDatabaseConfig(), baseLogger)
+    await runMigrations(baseLogger)
+  } catch (error) {
+    baseLogger.error('database not ready', error)
+  }
 
   const eventBridge = new DefaultEventBridge(baseLogger, getEventBridgeConfig())
 
@@ -74,14 +82,6 @@ export const startApplication = async () => {
   const oauthService = await OAuthService.createInstance(baseLogger, eventBridge, getOauthConfig())
   await oauthService.start()
 
-  const testService = await TestService.createInstance(baseLogger, eventBridge)
-  await testService.start()
-
-  /*
-  try {
-    await initDatabase(getDatabaseConfig(), baseLogger)
-  } catch (error) {
-    baseLogger.error('database not ready', error)
-  }
-  */
+  const userService = await UserService.createInstance(baseLogger, eventBridge)
+  await userService.start()
 }

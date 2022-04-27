@@ -2,10 +2,10 @@ import { EBMessage } from '../EBMessage'
 import { EBMessageType } from '../EBMessageType.enum'
 import { SubscriptionId } from './SubscriptionId'
 
-export type SubscriptionDefinition = {
+export type SubscriptionDefinition<MessageType = EBMessage> = {
   subscriptionName: string
   subscriptionDescription: string
-  call(subscriptionId: SubscriptionId, message: EBMessage): Promise<void>
+  call(id: SubscriptionId, message: MessageType): Promise<void>
   sender?: {
     serviceName?: string
     serviceVersion?: string

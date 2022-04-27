@@ -1,0 +1,14 @@
+{
+  "port": 9090,
+  "logLevel": "debug",
+  "options": {
+    "allowHTTP1": true,
+    "ca": "certs/ca.crt",
+    "key": "certs/server.key",
+    "cert": "certs/server.crt"
+  },
+  "apiMountPath": "/api",
+  "openApi": {
+    "enabled": true
+  }
+}
